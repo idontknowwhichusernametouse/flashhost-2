@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruffle Flash Player</title>
+
+    <script src="./ruffle/ruffle.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: black;
+        }
+
+        #player {
+            width: 100%;
+            height: 100%;
+        }
+
+        #message {
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            white-space: pre-wrap;
+        }
+
+        ruffle-player {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="message">Starting Ruffle...</div>
+
+<script>
+    async function start() {
+        const message = document.getElementById("message");
+
+        const params = new URLSearchParams(window.location.search);
+        const game = params.get("game");
+
+        if (!game) {
+            message.textContent =
+                "No game specified.\n\n" +
+                "Example:\n" +
+                "?game=bad-piggies-38.swf";
+            return;
+        }
+
+        message.textContent =
+            "Game requested:\n" + game + "\n\n" +
+            "Checking Ruffle...";
+
+        // Check whether Ruffle loaded.
+        if (!window.RufflePlayer) {
+            message.textContent =
+                "ERROR: RufflePlayer was not found.\n\n" +
+                "ruffle.js loaded, but Ruffle did not initialize.";
+            return;
+        }
+
+        try {
+            const ruffle = window.RufflePlayer.newest();
+            const player = ruffle.createPlayer();
+
+            player.config = {
+                allowNetworking: "all",
+                allowScriptAccess: true,
+                allowFullscreen: true,
+                autoplay: "on"
+            };
+
+            player.style.width = "100%";
+            player.style.height = "100%";
+
+            document.body.innerHTML = "";
+            document.body.appendChild(player);
+
+            const swfURL =
+                "./games/" + encodeURIComponent(game);
+
+            console.log("Loading SWF:", swfURL);
+
+            await player.ruffle().load(swfURL);
+
+        } catch (error) {
+            console.error(error);
+
+            document.body.innerHTML =
+                '<div id="message">' +
+                'Ruffle encountered an error:\\n\\n' +
+                String(error) +
+                '</div>';
+        }
+    }
+
+    start();
+</script>
+
+</body>
+</html>
